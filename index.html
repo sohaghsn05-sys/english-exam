@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interactive MCQ Exam — Voice</title>
+<style>
+:root{--ink:#172033;--muted:#667085;--line:#e4e7ec;--brand:#3157d5;--brand2:#eef2ff;--good:#16803c;--bad:#c62828;--bg:#f5f7fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:11px 16px;font-weight:650}
+button:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--brand);color:#fff}.secondary{background:#eef0f5;color:var(--ink)}.danger{background:#b42318;color:white}
+header{background:#fff;border-bottom:1px solid var(--line);padding:16px 20px;position:sticky;top:0;z-index:5}
+.top{max-width:1100px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:14px}.brand h1{font-size:19px;margin:0}.brand p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.timer{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;padding:8px 13px;border-radius:10px;background:#fff4e5;color:#9a3412;white-space:nowrap}.timer.urgent{background:#fee4e2;color:#b42318}
+main{max-width:1100px;margin:24px auto;padding:0 16px;display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:18px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 3px 12px #10182808}
+.meta{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--muted);font-size:13px;margin-bottom:15px}.qtitle{font-size:19px;font-weight:750;margin:0 0 20px;white-space:pre-wrap}
+.option{display:flex;align-items:flex-start;gap:12px;border:1px solid var(--line);border-radius:12px;padding:13px;margin:10px 0;cursor:pointer;transition:.15s}
+.option:hover{border-color:#9aaaf5;background:#fafbff}.option.selected{border-color:var(--brand);background:var(--brand2)}.option input{margin-top:5px;accent-color:var(--brand);transform:scale(1.12)}.letter{font-weight:800;min-width:20px}
+.navbuttons{display:flex;justify-content:space-between;gap:10px;margin-top:24px}.sidebar h2{font-size:16px;margin:0 0 12px}.legend{font-size:12px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;background:#d0d5dd}.dot.done{background:#16a34a}.dot.current{background:var(--brand)}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.num{padding:9px 0;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px}.num.done{background:#dcfce7;border-color:#86efac}.num.current{outline:2px solid var(--brand);outline-offset:1px}.num.flag{background:#fff4e5;border-color:#fdb022}
+.sidebar .hint{font-size:13px;color:var(--muted);margin:14px 0 0}.sidebar .submit{width:100%;margin-top:18px}
+.progress{height:7px;background:#edf0f5;border-radius:99px;overflow:hidden;margin:12px 0 0}.progress div{height:100%;background:var(--brand);width:0;transition:width .2s}
+#result{max-width:900px;margin:24px auto;padding:0 16px;display:none}.scorehead{text-align:center}.score{font-size:44px;font-weight:850;color:var(--brand);line-height:1.2}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0}.stat{border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}.stat strong{display:block;font-size:23px}.stat span{color:var(--muted);font-size:13px}.review-item{border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}.review-item h3{font-size:16px;margin:0 0 10px}.review-option{padding:7px 10px;border-radius:8px;margin:5px 0}.review-option.correct{background:#dcfce7;color:#166534}.review-option.chosen-wrong{background:#fee2e2;color:#991b1b}.status{font-size:13px;font-weight:800;margin-bottom:8px}.status.correct{color:var(--good)}.status.wrong{color:var(--bad)}.status.unanswered{color:#9a6700}.review-controls{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+@media(max-width:800px){main{grid-template-columns:1fr;margin-top:14px}.sidebar{order:-1}.grid{grid-template-columns:repeat(10,1fr)}.sidebar .submit{margin-top:12px}.panel{padding:17px}.qtitle{font-size:17px}.stats{grid-template-columns:repeat(2,1fr)}header{padding:12px}.brand h1{font-size:16px}.timer{font-size:18px}}
+@media(max-width:420px){.grid{grid-template-columns:repeat(8,1fr)}.top{align-items:flex-start}.brand p{max-width:190px}.navbuttons button{padding:10px 12px}}
+</style>
+</head>
+<body>
+<header><div class="top"><div class="brand"><h1>Interactive MCQ Exam</h1><p>English Grammar · Voice · 40 questions · 15 minutes</p></div><div id="timer" class="timer" aria-live="polite">15:00</div></div></header>
+<main id="exam">
+<section class="panel">
+<div class="meta"><span id="counter">Question 1 of 40</span><span id="source">PDF reference: Q184</span></div>
+<div class="progress"><div id="progressbar"></div></div>
+<h2 id="question" class="qtitle"></h2>
+<div id="options"></div>
+<div class="navbuttons"><button class="secondary" id="prev">← Previous</button><button class="primary" id="next">Next →</button></div>
+</section>
+<aside class="panel sidebar">
+<h2>Question Navigator</h2>
+<div class="legend"><span><i class="dot done"></i>Answered</span><span><i class="dot current"></i>Current</span><span><i class="dot"></i>Unanswered</span></div>
+<div id="numbers" class="grid"></div>
+<p id="answeredcount" class="hint">Answered: 0 / 40</p>
+<p class="hint">You can move between questions and change answers until you submit or time runs out.</p>
+<button class="danger submit" id="submit">Submit Exam</button>
+</aside>
+</main>
+<section id="result">
+<div class="panel scorehead">
+<h1>Exam Result</h1><div id="finalscore" class="score">0 / 40</div><p id="percentage"></p>
+<div class="stats">
+<div class="stat"><strong id="correctcount">0</strong><span>Correct</span></div>
+<div class="stat"><strong id="wrongcount">0</strong><span>Wrong</span></div>
+<div class="stat"><strong id="unansweredcount">0</strong><span>Unanswered</span></div>
+<div class="stat"><strong id="positive">0</strong><span>Positive marks</span></div>
+<div class="stat"><strong id="negative">0</strong><span>Negative marks</span></div>
+<div class="stat"><strong>40</strong><span>Total questions</span></div>
+<div class="stat"><strong>−0.25</strong><span>Per wrong answer</span></div>
+<div class="stat"><strong>15 min</strong><span>Exam duration</span></div>
+</div>
+<p id="submittedreason"></p>
+<div class="review-controls"><button class="primary" id="toggleReview">Show answer review</button><button class="secondary" onclick="window.scrollTo({top:0,behavior:'smooth'})">Back to top</button></div>
+</div>
+<div id="review" style="display:none"></div>
+</section>
+<footer>Self-contained exam file · No server or internet connection required</footer>
+<script>
+const QUESTIONS = [{"src": "184", "q": "Choose the passive structure ‘His comment surprised me’.", "opts": ["I was surprised by his comment.", "I was surprised at his comment.", "I was surprised for his comment.", "I was surprised to his comment."], "ans": 1}, {"src": "185", "q": "‘Nobody believes a liar.’ The correct passive voice form of the above sentence is:", "opts": ["A liar is never believed by anyone.", "A liar should not be believed by anybody.", "A liar is not believed by anybody.", "A liar is believed by nobody."], "ans": 2}, {"src": "186", "q": "The passive form of the sentence ‘His sudden death shocked me’ is-", "opts": ["I was shocked by his sudden death.", "I was shocked to his sudden death.", "I was shocked to know his sudden death.", "I was shocked at his sudden death."], "ans": 3}, {"src": "187", "q": "Change into active form: ‘I was surprised to see that he had been beaten black and blue.’", "opts": ["I was surprised to see that he has been beaten black and blue.", "It surprised me to see that he had been beaten black and blue.", "It was surprising that he had been beaten black and blue.", "That he had been beaten black and blue was surprising."], "ans": 1}, {"src": "188", "q": "‘Do you see the flower?’ Identify the correct passive form of the above sentence.", "opts": ["Is the flower was seen by you?", "Is the flower being seen by you?", "Has the flower seen by you?", "Is the flower seen by you?"], "ans": 3}, {"src": "189", "q": "The correct passive form of the sentence: They elected him captain.", "opts": ["He is elected captain by them.", "He was elected captain by them.", "Captain is elected him by them.", "He has been elected captain by them."], "ans": 1}, {"src": "190", "q": "The passive form of the sentence ‘I have killed the bird’ is-", "opts": ["The bird has killed by me.", "The bird has been killed by me.", "The bird have been killed by me.", "The bird has been being killed by me."], "ans": 1}, {"src": "191", "q": "‘Please close the door’. The passive form of this sentence is:", "opts": ["Let the door be closed.", "You are requested to close the door.", "The door is to be closed.", "I request you to close the door."], "ans": 1}, {"src": "192", "q": "Change the voice, “Please keep quiet”", "opts": ["You are requested to keep quiet.", "You are requested for keep quiet.", "You are asked to keep quiet.", "You are told to keep quiet."], "ans": 0}, {"src": "193", "q": "The passive form of ‘Don’t waste your time’ is-", "opts": ["Let your time be not wasted.", "Let your time not be wasted.", "Let your time be wasted.", "Let not your time be wasted."], "ans": 3}, {"src": "194", "q": "He was helping me. The correct passive form is:", "opts": ["I was helped by him.", "I had been helped by him.", "I have been helped by him.", "I was being helped by him."], "ans": 3}, {"src": "195", "q": "Change into passive: ‘The trainer walked the horse after the race.’", "opts": ["The horse was walked after the race by the trainer.", "After the race, the horse walked by the trainer.", "The trainer walked the horse by the race.", "The horse was walked the trainer after the race."], "ans": 0}, {"src": "196", "q": "The correct passive form of the sentence ‘We don’t respect dishonest people’ is-", "opts": ["We are not respected by dishonest people.", "Dishonest people are not of our liking.", "Dishonest people are not respected by us.", "Dishonest people are not like us."], "ans": 2}, {"src": "197", "q": "Let me do the sum. Passive of it is -", "opts": ["Let the sum is to be done by me.", "Let the sum done by me.", "Let the sum being done by me.", "Let the sum be done by me."], "ans": 3}, {"src": "198", "q": "Identify the right passive voice of ‘It is impossible to do this’.", "opts": ["Doing this is impossible.", "This is impossible to be done.", "This is must be done.", "This can’t be done."], "ans": 1}, {"src": "199", "q": "“It cannot be done.” The active voice form is-", "opts": ["No one can do it.", "We cannot do it.", "It is impossible to do it.", "Most people cannot do it."], "ans": 0}, {"src": "200", "q": "What cannot be cured must be endured. (Active)", "opts": ["We must be endured what we cannot cure.", "We cannot cure what must endure.", "Must be endure can cure.", "We must endure what we cannot cure."], "ans": 3}, {"src": "201", "q": "I helped her solve the problem. (Passive)", "opts": ["She was helped to solve the problem.", "The problem was solved by me.", "Her problem was solved by me.", "She was helped to solve the problem by me."], "ans": 3}, {"src": "202", "q": "The passive form of the sentence ‘He saw me do it’ is-", "opts": ["I was seen do it by him.", "I was seen to do it by him.", "I was seen doing it by him.", "I was seen to doing it by him."], "ans": 1}, {"src": "203", "q": "‘Never tell a lie’ The passive form of this sentence is", "opts": ["Let never a lie be told.", "Let not a lie never be told.", "Let a lie never be told.", "Let lie never be told."], "ans": 0}, {"src": "205", "q": "‘Do you know him?’ The passive form will be-", "opts": ["Is he known by you?", "Is he known to you?", "Does he known by you?", "Is he known with you?"], "ans": 1}, {"src": "206", "q": "Do you find your payment too little? (Passive)", "opts": ["Is your payment found too little to you?", "Are your payment found too little to you?", "Are your payment found too little by you?", "Is your payment found too little by you?"], "ans": 3}, {"src": "207", "q": "The passive form of the sentence, ‘Some children are helping the wounded man’.", "opts": ["The wounded man was helped by some children.", "The wounded man was helping by some children.", "The wounded man was to be helped by some children.", "The wounded man is being helped by some children."], "ans": 3}, {"src": "208", "q": "He is going to give me a prize. (Make it passive)", "opts": ["I am going to give a prize by him.", "I am gone to give a prize by him.", "I was going to be given a prize by him.", "I am going to be given a prize by him."], "ans": 3}, {"src": "209", "q": "What is the active voice of ‘The gate was opened by the peon.’?", "opts": ["The peon opened the gate.", "The peon had opened the gate.", "The peon has opened the gate.", "The peon opens the gate."], "ans": 0}, {"src": "210", "q": "The correct passive form of the sentence “they laugh at us” is-", "opts": ["We are laugh at them.", "We are laughed at with them.", "We are laughed by them.", "We are laughed at by them."], "ans": 3}, {"src": "211", "q": "The correct passive of ‘Sheila was writing a letter.’ is —", "opts": ["A letter was writing by Sheila.", "A letter was being written by Sheila.", "A letter was being writing by Sheila.", "A letter was been written by Sheila."], "ans": 1}, {"src": "212", "q": "‘He taught me to read Arabic’ The passive form will be-", "opts": ["I was taught by him to read Arabic.", "I have been taught by him to read Arabic.", "I had been taught by him to read Arabic.", "I was being taught to read Arabic."], "ans": 0}, {"src": "213", "q": "What is the passive form of ‘He made me drive his car’?", "opts": ["I was made drive his car by him.", "I was made to drive his car by him.", "I was made driven his car by him.", "I am made to drive his car by him."], "ans": 1}, {"src": "214", "q": "The passive voice of “Who has broken the glass?”", "opts": ["Who was broken the glass?", "By whom was the glass broken?", "By whom has the glass broken?", "By whom has the glass been broken?"], "ans": 3}, {"src": "215", "q": "The passive form of the sentence ‘Do not laugh at the poor’ is—", "opts": ["Let the poor be not laughed at.", "Let not the poor be laughed at.", "Let the poor be not laugh at.", "Let not the poor be laugh at."], "ans": 1}, {"src": "216", "q": "The passive voice of the sentence ‘We made her recite a poem’", "opts": ["A poem was made recite by her.", "She was made to recite a poem.", "She was made recited a poem.", "A poem was made to be recited."], "ans": 1}, {"src": "217", "q": "Did the boy catch the bird? The best passive form is-", "opts": ["Was the bird caught by the boy?", "Was the bird being caught by the boy?", "Is the bird caught by the boy?", "Has the bird been caught by the boy?"], "ans": 0}, {"src": "218", "q": "Passive form of ‘BBC broadcast the news.’ is", "opts": ["The news are broadcasted by BBC.", "The news are broadcast by BBC.", "The news is broadcast by BBC.", "The news was broadcast by BBC."], "ans": 3}, {"src": "219", "q": "“Who broke the pencil?” What is the passive form of this sentence?", "opts": ["By whom the pencil was broken?", "By whom was the pencil broken?", "The pencil was broken by whom?", "Who was broken the pencil?"], "ans": 1}, {"src": "220", "q": "‘Let the book be read by you’ The active form is", "opts": ["Read the book.", "You are to read the book.", "Let the book read by you.", "Let the book be reading by you."], "ans": 0}, {"src": "221", "q": "‘Who will help you?’ The correct changed voice will be-", "opts": ["By whom will you be helped?", "By whom you will be helped?", "By whom would you be helped?", "By whom will be you helped?"], "ans": 0}, {"src": "222", "q": "Choose the correct sentence.", "opts": ["The matter was informed in the police.", "The matter had been informed of the police.", "The police were informed of the matter.", "The police was informed of the matter."], "ans": 2}, {"src": "223", "q": "He did not tell the dangerous secret to anybody.", "opts": ["The dangerous secret was not told to anybody by him.", "The dangerous secret was not told to him by anybody.", "The dangerous secret was told not him to anybody.", "Anybody was not told about the dangerous secret by him."], "ans": 0}, {"src": "224", "q": "Give the correct passive form: We insist on punctuality in this office.", "opts": ["Punctuality is insisted on in this office.", "Punctuality be insisted in this office.", "Punctuality should be insisted in this office.", "Punctuality is to be insisted on in this office."], "ans": 0}];
+const LETTERS = ["A","B","C","D"];
+const answers = Array(QUESTIONS.length).fill(null);
+let current = 0, finished = false, remaining = 15*60, tick = null, reviewVisible = false;
+const $ = id => document.getElementById(id);
+function renderQuestion(){
+  const q=QUESTIONS[current];
+  $("counter").textContent=`Question ${current+1} of ${QUESTIONS.length}`;
+  $("source").textContent=`PDF reference: Q${q.src}`;
+  $("question").textContent=q.q;
+  $("options").innerHTML="";
+  q.opts.forEach((opt,i)=>{
+    const label=document.createElement("label");
+    label.className="option"+(answers[current]===i?" selected":"");
+    const input=document.createElement("input");
+    input.type="radio";input.name="answer";input.checked=answers[current]===i;input.disabled=finished;
+    input.addEventListener("change",()=>{if(!finished){answers[current]=i;renderQuestion();}});
+    const letter=document.createElement("span");letter.className="letter";letter.textContent=LETTERS[i]+".";
+    const text=document.createElement("span");text.textContent=opt;
+    label.append(input,letter,text);$("options").appendChild(label);
+  });
+  $("prev").disabled=current===0||finished;
+  $("next").disabled=current===QUESTIONS.length-1||finished;
+  $("progressbar").style.width=((current+1)/QUESTIONS.length*100)+"%";
+  renderNavigator();
+}
+function renderNavigator(){
+  $("numbers").innerHTML="";
+  QUESTIONS.forEach((q,i)=>{
+    const b=document.createElement("button");b.className="num"+(answers[i]!==null?" done":"")+(i===current?" current":"");
+    b.textContent=i+1;b.title=`Question ${i+1} · PDF Q${q.src} · ${answers[i]===null?"Unanswered":"Answered"}`;
+    b.disabled=finished;b.addEventListener("click",()=>{current=i;renderQuestion();});$("numbers").appendChild(b);
+  });
+  $("answeredcount").textContent=`Answered: ${answers.filter(a=>a!==null).length} / ${QUESTIONS.length}`;
+}
+function updateTimer(){
+  const m=Math.floor(remaining/60),s=remaining%60;
+  $("timer").textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+  $("timer").classList.toggle("urgent",remaining<=60);
+}
+function startTimer(){
+  updateTimer();
+  tick=setInterval(()=>{if(finished)return;remaining--;updateTimer();if(remaining<=0){remaining=0;updateTimer();finishExam(true);}},1000);
+}
+function finishExam(auto=false){
+  if(finished)return;
+  finished=true;if(tick)clearInterval(tick);
+  const correct=answers.reduce((n,a,i)=>n+(a===QUESTIONS[i].ans?1:0),0);
+  const wrong=answers.reduce((n,a,i)=>n+(a!==null&&a!==QUESTIONS[i].ans?1:0),0);
+  const unanswered=answers.filter(a=>a===null).length;
+  const positive=correct,negative=wrong*0.25,score=positive-negative;
+  $("exam").style.display="none";$("result").style.display="block";
+  $("finalscore").textContent=`${score.toFixed(2)} / 40`;
+  $("percentage").textContent=`Percentage: ${(score/40*100).toFixed(2)}%`;
+  $("correctcount").textContent=correct;$("wrongcount").textContent=wrong;$("unansweredcount").textContent=unanswered;
+  $("positive").textContent=positive.toFixed(2);$("negative").textContent="−"+negative.toFixed(2);
+  $("submittedreason").textContent=auto?"Time is over. Your exam was submitted automatically and your answers are locked.":"Your exam has been submitted. Your answers are now locked.";
+  buildReview();window.scrollTo({top:0,behavior:"smooth"});
+}
+function buildReview(){
+  $("review").innerHTML="";
+  QUESTIONS.forEach((q,i)=>{
+    const chosen=answers[i],ok=chosen===q.ans,unanswered=chosen===null;
+    const card=document.createElement("article");card.className="review-item";
+    const status=document.createElement("div");status.className="status "+(unanswered?"unanswered":ok?"correct":"wrong");
+    status.textContent=unanswered?"UNANSWERED · 0 mark":ok?"CORRECT · +1 mark":"WRONG · −0.25 mark";
+    const h=document.createElement("h3");h.textContent=`${i+1}. ${q.q} (PDF Q${q.src})`;
+    card.append(status,h);
+    q.opts.forEach((opt,j)=>{
+      const line=document.createElement("div");line.className="review-option";
+      if(j===q.ans)line.classList.add("correct");
+      if(j===chosen&&j!==q.ans)line.classList.add("chosen-wrong");
+      line.textContent=`${LETTERS[j]}. ${opt}`+(j===q.ans?"  ✓ Correct answer":"")+(j===chosen?"  · Your answer":"");
+      card.appendChild(line);
+    });
+    $("review").appendChild(card);
+  });
+}
+$("prev").addEventListener("click",()=>{if(current>0&&!finished){current--;renderQuestion();}});
+$("next").addEventListener("click",()=>{if(current<QUESTIONS.length-1&&!finished){current++;renderQuestion();}});
+$("submit").addEventListener("click",()=>{const unanswered=answers.filter(a=>a===null).length;const msg=unanswered?`You have ${unanswered} unanswered question(s). Submit anyway?`:"Submit your exam now? You cannot change answers afterward.";if(confirm(msg))finishExam(false);});
+$("toggleReview").addEventListener("click",()=>{reviewVisible=!reviewVisible;$("review").style.display=reviewVisible?"block":"none";$("toggleReview").textContent=reviewVisible?"Hide answer review":"Show answer review";});
+renderQuestion();startTimer();
+</script>
+</body>
+</html>
